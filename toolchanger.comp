@@ -1,0 +1,178 @@
+component toolchanger               	"This component controls the Boxford 240 Lathe Auto Tool Changer. M6 calls this";
+
+pin in bit toolchange               	"Receives signal from M6 that tool change required";
+pin in s32 toolnumber               	"Receives Tx data from M6 (tool number requested) Only allows 1-8";
+pin in s32 currenttoolnumber        	"Receives old tool number";
+pin in float stepgen_pos_fb				"Position-feedback from stepgen";
+pin out float position_cmd          	"Sends location required";
+
+pin out bit toolchanged =false      	"Sends signal when tool change finished";
+pin in bit enable = false          		"Toolchanger enable signal";
+
+pin in bit jog_forward = false       	"Facilitate jogging of stepgen via component";
+pin in bit jog_back = false          	"Facilitate jogging of stepgen via component";
+pin in float jog_move = 0            	"distance to jog";
+
+// allow parameters to be changed by setp for fine tuning
+param rw float odd_move   = 45 	     	"distance from odd tool station to even one";
+param rw float even_move  = 45       	"distance from even tool station to odd one";
+param rw float clear_move = 5			"additional move to ensure clearing the pawl";
+param rw float lock_move  = 9        	"backward move to ensure locking";
+param rw float lock_delay = 100         "delay before lock back, very roughly in ms";
+
+// internal variables
+
+variable int progress_level = 0;    	// tracks the progress of the toolchange
+variable int moves = 0;             	// number of moves to reach tool station  
+variable int index = 0;             	// Counter used for comparison with moves
+variable bool bEven = false;        	// Odd or Even station requested
+variable bool bToggle = false;      	// Status of current move as Odd or Even
+variable float position_req = 0;    	// Where we want to be
+variable float position_accum = 0;  	// Moves are incremental but stepgen is absolute so add them up
+
+variable bool bWarn = false;        	// one shot warning no tool set
+variable int delay_index = 0;       	// counter for above
+variable bool fjog = false;         	// use internal flags for jogging after initial signal to ensure that one command is
+variable bool bjog = false;         	// carried out at a time - should not be possible to be otherwise but paranoia rules
+variable float jmove = 0;
+
+option singleton yes;               	// makes no sense to have more than one of these components running - only one ATC 
+function _;
+author "ArcEye schooner30@tiscali.co.uk";
+license "GPL";
+;;
+
+
+FUNCTION(_)
+{	
+    switch (progress_level)
+        {
+        case 0:  // idle waiting for toolchange request
+                if(jog_forward && !fjog)
+                    {
+                    fjog = true;
+                    bjog = false;                
+                    jmove = jog_move;
+                    position_cmd = position_accum + jmove;
+                    //position_cmd = position_req;
+                    progress_level = 1;
+                    break;
+                    }
+                else if(jog_back && !bjog)  
+                    {
+                    fjog = false;
+                    bjog = true;
+                    jmove = jog_move;       
+                    position_cmd = position_accum - jmove;    
+					//position_cmd = position_req;
+                    progress_level = 3;
+                    break;
+                    }
+                else
+                    {
+                    // axis does not remember the current tool number, so prompt for it when A axis homed                
+                    if(enable && !currenttoolnumber && !bWarn)
+                        {
+                        bWarn = true;  // just warn once, its not an error as such but INFO won't display unless debugging is set 3+
+                        rtapi_print_msg(RTAPI_MSG_ERR, "No tool selected. Use M6Tx to set current tool");
+                        break;  
+                        }
+                    if(toolchange && !toolchanged)  // prevent cycling after change done
+                        {
+                        if(currenttoolnumber && toolnumber != currenttoolnumber && toolnumber > 0 && toolnumber < 7) // if a valid number
+                            {
+                            if(currenttoolnumber == 2 || currenttoolnumber == 4 || currenttoolnumber == 6)
+                                bEven = true;    
+                            if(currenttoolnumber < toolnumber)
+                                moves = toolnumber - currenttoolnumber;
+                            else
+                                moves = (6 - currenttoolnumber) + toolnumber;
+    
+                            bToggle = bEven;
+                            
+                            while(index < moves)
+                                {
+                                if(bToggle)
+                                    position_req += even_move;
+                                else
+                                    position_req += odd_move;
+                                index++;
+                                bToggle = !bToggle;
+                                }
+                            position_req += clear_move;    
+                            position_req += position_accum;
+                            position_cmd = position_accum;
+                            position_cmd = position_req;
+                            rtapi_print("cmd fwd : " "%f\n",position_cmd);
+                            progress_level = 1;
+                            }
+                         else  // if tool requested is out of range or already selected just set the toolchanged flag and exit
+                            progress_level = 5;
+                         }
+                    if(!toolchange)
+                        toolchanged = 0; // reset once toolchange flag reset by system
+                    if(toolchange && !currenttoolnumber) // if no tool is set - set to tool requested so that can work next time
+                        progress_level = 5;
+                        } // end else
+                break;
+                
+        case 1: // Forward jog and  Backward locking move
+                if(position_cmd > (stepgen_pos_fb + 0.00001))  // has the step generator reached the destination yet? + small numbre to compensate for pid error
+				    {
+					break;               
+                    }
+                if(!fjog  && (delay_index < lock_delay ))  // Wait before locking
+                    delay_index++;                    
+                else
+                    {
+                    if(fjog)
+                        {
+                        fjog = bjog = false;
+                        progress_level = 5;
+                        }
+                    else
+						{
+						position_req -= lock_move;
+						position_cmd = position_req;
+						rtapi_print("cmd bwd : " "%f\n",position_cmd);
+						progress_level = 3;
+						}
+					}		
+                break;
+
+
+        case 3: // backward jog
+                if(position_cmd < (stepgen_pos_fb - 0.00001))  // has the step generator reached the destination yet? - small number to compensate for pid error
+                    {
+                    break;
+                    }
+                bjog = fjog = false;
+                progress_level = 5;
+                break;
+                
+                
+        case 5: // clean up ready for next toolchange
+                position_accum = position_cmd;
+                position_req = 0;
+                delay_index = 0;
+                moves = 0;
+                index = 0;
+                bEven = false;
+                bToggle = false;
+                progress_level = 0;
+                toolchanged = 1;   // signal finished
+                break;
+
+        case 10:   break;  // should never get here but if we do then loop endlessly doing nothing
+                
+        default:    
+                progress_level = 10;
+                rtapi_print_msg(RTAPI_MSG_ERR, "Error state in toolchanger - now disabled - unload toolchanger");            
+        
+        }
+ 
+}
+
+
+
+
