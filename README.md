@@ -57,3 +57,6 @@ Things to work on:
 - [ ]  figure out gearing in linuxcnc to be able to select the Low gear (pulley) settings and have the commanded speed be correct, as well as have High gear (pulley) commanded speeds be correct.
 - [ ]  add back real buttons and an encoder for jogging, MDI entry, etc.
 - [ ]  investigate QTdragon screens (needs Linuxcnc 2.9  which will probably break everything!)
+- [ ]  add a seperate set of files for Linuxcnc installation tips and hints (i.e. change wicd to network manager, setup 2nd ethernet connection for MESA and wireless for internet, etc.)
+- [ ]  figure out how to change the default loaded .ngc file to something not dangerous if somehow you accidentally hit cycle start (more importatnt on the mill)
+- [ ] 
