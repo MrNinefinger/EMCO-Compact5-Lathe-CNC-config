@@ -32,6 +32,14 @@ open a terminal in the folder where the .comp file is and enter:
 I had issues with sudo, can instead run in root and omit sudo prefix on commands:  su root
 exit root when done!
 
+Usefull tools to improve linux functionality:
+visudo will let you add you're username to the sudo list,instructions here: https://devconnected.com/how-to-add-a-user-to-sudoers-on-debian-10-buster/
+- apt-get install visudo
+
+Lastly - clone this respository to the configs folder in Linuxcnc
+
+~/linuxcnc/configs$ git clone https://github.com/MrNinefinger/EMCO-Compact5-Lathe-CNC-config
+
 Running it:
 
 The tool table needs to have a 'tool' line configured for it to be able to select that tool (minimum is the tool # and pocket # entered in the tool table).
