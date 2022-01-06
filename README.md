@@ -8,22 +8,23 @@ The configuration includes a toolchanger that has 6 equaly spaced tool positions
 The 'toolchanger.comp' is required for the toolchanger.  
 The spindle parameters are for the stock motor but driven by a cheap AC to DC motor control, with the belt running on pulleys that are roughly 4:5 motor:spindle 
 The lathe is configured with home switches at 'min' Z (tailstock end of lathe) and 'max' X (largest diameter position for cross slide)
-Using the original 100 slot encoder disk,but with new optical sensors, 1 for pulse (A) and 1 for index.  I don't run in reverse so no need for a second pulse (B) to get quadrature and direction.
+Using the original 100 slot encoder disk, but with new optical sensors, 1 for pulse (A) and 1 for index.  
+I don't run in reverse so no need for a second pulse (B) to get quadrature and direction.
 Spindle speed display is run through the lowpass filter to smooth it out.
-Spindle at speed indication is set be true when within +/- 3.5% I believe if I am interpreting this correclty (in the .hal file - "  setp near.0.scale 1.035 ")
+Spindle at speed indication is set be true when within +/- 3.5% I believe if I am interpreting this correctly (in the .hal file - "  setp near.0.scale 1.035 ")
 
 Installation Notes:
 
-To install the toolchanger.comp file Linuxcnc-dev is neeeded, may have to add the repositories manually (llok up and add to synaptic package manager), as well as build essential
+To install the toolchanger.comp file Linuxcnc-dev is needed, may have to add the repositories manually (look up and add to synaptic package manager), as well as build essential
 
-sudo apt-get update
-sudo apt-get install build-essential
-sudo apt-get install linuxcnc-uspace-dev
+- sudo apt-get update
+- sudo apt-get install build-essential
+- sudo apt-get install linuxcnc-uspace-dev
 
-and the Synaptic package manager has to be closed before using the terminal to install stuff (i.e. toolchanger.comp)
+The Synaptic package manager has to be closed before using the terminal to install stuff (i.e. toolchanger.comp)
 open a terminal in the folder where the .comp file is and enter:
 
-sudo halcompile --install toolchanger.comp
+- sudo halcompile --install toolchanger.comp
 
 I had issues with sudo, can instead run in root and omit sudo prefix on commands:  su root
 exit root when done!
@@ -39,6 +40,6 @@ no soft limit to prevent running into the chuck - did this to be able to machine
 
 Things to work on:
 
-1.  The spindle PID doesn't appear to be working,  when running at 50% speed and applying a load it doesn't try and speed up.  Need to investigate.
-2.  for convenience add a reverse and forward toolchanger jog button (real or virtual)
-3.  Investigat max velocity for Z axis, seems slow.  Play with micro stepping settings and step dir timming (changing the timing ont he mills 4th axis to 3000 improved the steppers performance significantly.)
+- [ ]  The spindle PID doesn't appear to be working,  when running at 50% speed and applying a load it doesn't try and speed up.  Need to investigate.
+- [ ]  for convenience add a reverse and forward toolchanger jog button (real or virtual)
+- [ ]  Investigat max velocity for Z axis, seems slow.  Play with micro stepping settings and step dir timming (changing the timing ont he mills 4th axis to 3000 improved the steppers performance significantly.)
