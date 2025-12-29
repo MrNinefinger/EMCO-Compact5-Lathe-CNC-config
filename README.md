@@ -21,8 +21,8 @@ Installation Notes:
 To install the toolchanger.comp file Linuxcnc-dev is needed, may have to add the repositories manually (look up and add to synaptic package manager), as well as build essential
 
 - sudo apt-get update
-- sudo apt-get install build-essential
-- sudo apt-get install linuxcnc-uspace-dev
+- sudo apt-get install build-essential (debian 12 not needed)
+- sudo apt-get install linuxcnc-uspace-dev (debian 12 not needed)
 
 The Synaptic package manager has to be closed before using the terminal to install stuff (i.e. toolchanger.comp)
 open a terminal in the folder where the .comp file is and enter:
@@ -59,4 +59,35 @@ Things to work on:
 - [ ]  investigate QTdragon screens (needs Linuxcnc 2.9  which will probably break everything!)
 - [ ]  add a seperate set of files for Linuxcnc installation tips and hints (i.e. change wicd to network manager, setup 2nd ethernet connection for MESA and wireless for internet, etc.)
 - [ ]  figure out how to change the default loaded .ngc file to something not dangerous if somehow you accidentally hit cycle start (more importatnt on the mill)
-- [ ] 
+
+
+Setting up initramfs-tools (0.142+deb12u3) ...
+update-initramfs: deferring update (trigger activated)
+Setting up linux-image-6.1.0-41-rt-amd64 (6.1.158-1) ...
+/etc/kernel/postinst.d/dkms:
+dkms: running auto installation service for kernel 6.1.0-41-rt-amd64.
+dkms: autoinstall for kernel: 6.1.0-41-rt-amd64.
+/etc/kernel/postinst.d/initramfs-tools:
+update-initramfs: Generating /boot/initrd.img-6.1.0-41-rt-amd64
+raspi-firmware: missing /boot/firmware, did you forget to mount it?
+run-parts: /etc/initramfs/post-update.d//z50-raspi-firmware exited with return code 1
+run-parts: /etc/kernel/postinst.d/initramfs-tools exited with return code 1
+dpkg: error processing package linux-image-6.1.0-41-rt-amd64 (--configure):
+ installed linux-image-6.1.0-41-rt-amd64 package post-installation script subprocess returned error exit status 1
+dpkg: dependency problems prevent configuration of linux-image-rt-amd64:
+ linux-image-rt-amd64 depends on linux-image-6.1.0-41-rt-amd64 (= 6.1.158-1); however:
+  Package linux-image-6.1.0-41-rt-amd64 is not configured yet.
+
+dpkg: error processing package linux-image-rt-amd64 (--configure):
+ dependency problems - leaving unconfigured
+Processing triggers for initramfs-tools (0.142+deb12u3) ...
+update-initramfs: Generating /boot/initrd.img-6.1.0-41-rt-amd64
+raspi-firmware: missing /boot/firmware, did you forget to mount it?
+run-parts: /etc/initramfs/post-update.d//z50-raspi-firmware exited with return code 1
+dpkg: error processing package initramfs-tools (--configure):
+ installed initramfs-tools package post-installation script subprocess returned error exit status 1
+Errors were encountered while processing:
+ linux-image-6.1.0-41-rt-amd64
+ linux-image-rt-amd64
+ initramfs-tools
+E: Sub-process /usr/bin/dpkg returned an error code (1)
