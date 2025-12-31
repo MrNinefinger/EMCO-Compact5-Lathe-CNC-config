@@ -17,28 +17,44 @@ Spindle speed display is run through the lowpass filter to smooth it out.
 Spindle at speed indication is set be true when within +/- 3.5% I believe if I am interpreting this correctly (in the .hal file - "  setp near.0.scale 1.035 ")
 
 Installation Notes:
+Install Debian latest version from Debian.org
+- NOTE 1 - ensure that the target computer has a working wifi or wired connection for Internet - will cause lots of issues if install proceeds without internet.
+- NOTE 2 - when installing Debian, use a blank for the ROOT password, if a ROOT password is entered then SUDO will not work and will be forced to use ROOT to do all admin tasks.
+- NOTE 3 - select Xfce as the desktop (familiarity reasons)
 
-To install the toolchanger.comp file Linuxcnc-dev is needed, may have to add the repositories manually (look up and add to synaptic package manager), as well as build essential
+Install the realtime kernel  (PREEMPT-RT) that LinuxCNC needs:
+- sudo apt-get install linux-image-rt-amd64
+- reboot and ensure the realtime kernel is selected (has -rt- in it)
+- can check the version using a terminal and typing uname -v
+- add the LinuxCNC Archive signing key to opt keyring:
+-Download:  https://www.linuxcnc.org/linuxcnc-install.sh and save to a folder
+open folder and open terminal there
+run chmod +x linuxcnc-install.sh (makes it executable)
+then run the installer:  Sudo ./linuxcnc-install.sh  (installs LinuxCNC plus a whole lot of dependancies)
+also install the uspace-dev (not the suggestion in the script has an error and is missing uspace (31/12/2025)
+- sudo apt-get install linuxcnc-uspace-dev
+- sudo apt-get install build-essential (needed to compile the toolchanger.comp later)
+install GIT command line interface (CIL)
+- sudo apt-get install git
+- git --version should show it is installed by providing a version #
+- set your email address:
+- git config --global user.email "your.email@example.com"  (include the quotes)
+- set your username:
+- git config --global user.name "Your Name"
+  
+- Run LinuxCNC from the applications menu and open the Axis sim (or any one) and let it create the folders
+(makes the folder  /home/PC-name/linuxcnc and the sub folders /config and nc_files
 
-- sudo apt-get update
-- sudo apt-get install build-essential (debian 12 not needed)
-- sudo apt-get install linuxcnc-uspace-dev (debian 12 not needed)
+Clone this respository to the configs folder in Linuxcnc
+~/linuxcnc/configs$ git clone https://github.com/MrNinefinger/EMCO-Compact5-Lathe-CNC-config
 
-The Synaptic package manager has to be closed before using the terminal to install stuff (i.e. toolchanger.comp)
-open a terminal in the folder where the .comp file is and enter:
+To install the toolchanger.comp 
+open a terminal in the folder where the .comp file is (in the /linuxcnc/configs folder that was cloned above) and enter:
 
 - sudo halcompile --install toolchanger.comp
 
-I had issues with sudo, can instead run in root and omit sudo prefix on commands:  su root
+If having issues with sudo, can instead run in root and omit sudo prefix on commands:  su root
 exit root when done!
-
-Usefull tools to improve linux functionality:
-visudo will let you add you're username to the sudo list,instructions here: https://devconnected.com/how-to-add-a-user-to-sudoers-on-debian-10-buster/
-- apt-get install visudo
-
-Lastly - clone this respository to the configs folder in Linuxcnc
-
-~/linuxcnc/configs$ git clone https://github.com/MrNinefinger/EMCO-Compact5-Lathe-CNC-config
 
 Running it:
 
@@ -60,34 +76,3 @@ Things to work on:
 - [ ]  add a seperate set of files for Linuxcnc installation tips and hints (i.e. change wicd to network manager, setup 2nd ethernet connection for MESA and wireless for internet, etc.)
 - [ ]  figure out how to change the default loaded .ngc file to something not dangerous if somehow you accidentally hit cycle start (more importatnt on the mill)
 
-
-Setting up initramfs-tools (0.142+deb12u3) ...
-update-initramfs: deferring update (trigger activated)
-Setting up linux-image-6.1.0-41-rt-amd64 (6.1.158-1) ...
-/etc/kernel/postinst.d/dkms:
-dkms: running auto installation service for kernel 6.1.0-41-rt-amd64.
-dkms: autoinstall for kernel: 6.1.0-41-rt-amd64.
-/etc/kernel/postinst.d/initramfs-tools:
-update-initramfs: Generating /boot/initrd.img-6.1.0-41-rt-amd64
-raspi-firmware: missing /boot/firmware, did you forget to mount it?
-run-parts: /etc/initramfs/post-update.d//z50-raspi-firmware exited with return code 1
-run-parts: /etc/kernel/postinst.d/initramfs-tools exited with return code 1
-dpkg: error processing package linux-image-6.1.0-41-rt-amd64 (--configure):
- installed linux-image-6.1.0-41-rt-amd64 package post-installation script subprocess returned error exit status 1
-dpkg: dependency problems prevent configuration of linux-image-rt-amd64:
- linux-image-rt-amd64 depends on linux-image-6.1.0-41-rt-amd64 (= 6.1.158-1); however:
-  Package linux-image-6.1.0-41-rt-amd64 is not configured yet.
-
-dpkg: error processing package linux-image-rt-amd64 (--configure):
- dependency problems - leaving unconfigured
-Processing triggers for initramfs-tools (0.142+deb12u3) ...
-update-initramfs: Generating /boot/initrd.img-6.1.0-41-rt-amd64
-raspi-firmware: missing /boot/firmware, did you forget to mount it?
-run-parts: /etc/initramfs/post-update.d//z50-raspi-firmware exited with return code 1
-dpkg: error processing package initramfs-tools (--configure):
- installed initramfs-tools package post-installation script subprocess returned error exit status 1
-Errors were encountered while processing:
- linux-image-6.1.0-41-rt-amd64
- linux-image-rt-amd64
- initramfs-tools
-E: Sub-process /usr/bin/dpkg returned an error code (1)
