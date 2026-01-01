@@ -53,10 +53,19 @@ open a terminal in the folder where the .comp file is (in the /linuxcnc/configs 
 
 - sudo halcompile --install toolchanger.comp
 
+If up til now a wired ethernet connection was used its time to change to a wireless one or have a second ethernet port.
+- setup the wired ethernet port for the Mesa card:
+- right click on the ehternet / wireless icon in the upper right and select edit connecitons
+- double click on the wired connection to edit (wired connection 1 is default)
+- remance to MESA Ethernet card or something else sensible (CNC machine conenciton, etc.)
+- under IPv4 settings, select method as Manual, and provide the address as 10.10.10.11  with netmask as 8
+- open the Routes option in the bottom right, and select "Use this connection only for resources on its network", then save and exit
+
+General notes: 
 If having issues with sudo, can instead run in root and omit sudo prefix on commands:  su root
 exit root when done!
 
-Running it:
+Running the Emco Compact 5 lathe:
 
 The tool table needs to have a 'tool' line configured for it to be able to select that tool (minimum is the tool # and pocket # entered in the tool table).
 
